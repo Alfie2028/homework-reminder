@@ -125,8 +125,16 @@ def main() -> int:
         if mv:
             print("MOOC Cookie 仍有效，跳过")
 
+    # 平台开关：关闭的平台不刷新
+    if not cfg.get("educoder_enabled", True):
+        need_edu = False
+        print("头歌已禁用，跳过")
+    if not cfg.get("mooc_enabled", True):
+        need_mooc = False
+        print("MOOC 已禁用，跳过")
+
     if not need_edu and not need_mooc:
-        print("两个平台 Cookie 都有效，无需刷新")
+        print("无需刷新")
         return 0
 
     with sync_playwright() as p:

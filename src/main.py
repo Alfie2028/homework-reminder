@@ -181,7 +181,7 @@ def run(force_summary: bool = False):
     homeworks: list[Homework] = []
 
     # ---- 头歌 ----
-    if cfg["educoder_cookie"]:
+    if cfg["educoder_cookie"] and cfg.get("educoder_enabled", True):
         try:
             fetcher = EducoderFetcher(cfg["educoder_cookie"], username=cfg["educoder_username"])
             homeworks.extend(fetcher.fetch_all())
@@ -192,7 +192,7 @@ def run(force_summary: bool = False):
             _handle_fetch_error(pusher, "头歌", e)
 
     # ---- MOOC ----
-    if cfg["mooc_cookie"]:
+    if cfg["mooc_cookie"] and cfg.get("mooc_enabled", True):
         try:
             fetcher = MoocFetcher(cfg["mooc_cookie"])
             homeworks.extend(fetcher.fetch_all())
