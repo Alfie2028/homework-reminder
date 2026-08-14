@@ -195,6 +195,8 @@ class EducoderFetcher(BaseFetcher):
         })
         resp = self.session.get(url, params=params, timeout=30)
         if resp.status_code in (401, 403):
+            print(f"[诊断] HTTP {resp.status_code} <- {url}")
+            print(f"[诊断] body: {resp.text[:400]}")
             raise PermissionError(f"401/403 Cookie 失效: {url}")
         resp.raise_for_status()
         try:
