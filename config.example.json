@@ -2,7 +2,9 @@
   "educoder_cookie": "autologin_trustie=xxx; _educoder_session=xxx",
   "educoder_username": "pn3kvxzay",
   "educoder_password": "（可选，自动登录用，暂未启用）",
-  "mooc_cookie": "（二期）中国大学MOOC登录后的完整Cookie",
+  "login_phone": "你的手机号（用于 refresh_cookies.py 自动登录）",
+  "login_password": "你的密码（用于 refresh_cookies.py 自动登录）",
+  "mooc_cookie": "中国大学MOOC登录后的完整Cookie（须含 HttpOnly 的 STUDY_SESS/STUDY_PERSIST/NTES_YD_SESS/NTES_YD_PASSPORT，见 README 抓包说明）",
   "serverchan_key": "SCTxxxx（Server酱 SendKey，https://sct.ftqq.com）",
   "wecom_webhook": "（备选）企业微信机器人 https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=XXXX",
   "timezone": "Asia/Shanghai"

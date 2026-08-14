@@ -13,6 +13,7 @@ from pathlib import Path
 
 from .config import DATA_DIR, load_config
 from .fetchers.educoder import EducoderFetcher, Homework
+from .fetchers.mooc import MoocFetcher
 from .pusher import ServerChanPusher, WecomPusher
 from .store import StateStore
 
@@ -101,10 +102,27 @@ def detect_changes(old: dict, new: dict) -> dict:
     return changes
 
 
+def filter_pending(homeworks: list[Homework], now: datetime | None = None) -> list[Homework]:
+    """只保留「未提交」且「未过期(或无DDL)」的作业。"""
+    now = now or _now()
+    pending = []
+    for hw in homeworks:
+        if hw.status != "未写":
+            continue
+        dl = _parse_deadline(hw.deadline)
+        if dl is not None and dl < now:
+            continue  # 已过期，跳过
+        pending.append(hw)
+    return pending
+
+
 def _hw_line(hw: Homework) -> str:
     """作业行: 带课程前缀(多课程时用)。"""
     prefix = f"[{hw.course}] " if hw.course else ""
     return f"{prefix}{hw.title}"
+
+
+PLATFORM_NAMES = {"educoder": "🎓 头歌", "mooc": "📚 中国大学MOOC"}
 
 
 def build_urgent_message(urgent: list[dict]) -> str:
@@ -121,34 +139,31 @@ def build_urgent_message(urgent: list[dict]) -> str:
 
 def build_summary_message(homeworks: list[Homework]) -> str:
     todo = [h for h in homeworks if h.status == "未写"]
-    submitted = [h for h in homeworks if h.status == "已提交"]
-    graded = [h for h in homeworks if h.status == "已批改"]
+    # 按截止时间升序(最近截止在前)
+    todo.sort(key=lambda h: _parse_deadline(h.deadline) or datetime.max)
+
+    if not todo:
+        return "## 🎉 无未提交作业"
+
+    # 按平台分组
+    groups: dict[str, list[Homework]] = {}
+    for hw in todo:
+        groups.setdefault(hw.platform, []).append(hw)
 
     lines = []
-    if todo:
-        lines.append("**未写作业**")
-        for hw in todo[:15]:
+    for platform in ("educoder", "mooc"):
+        items = groups.get(platform, [])
+        if not items:
+            continue
+        lines.append(f"**{PLATFORM_NAMES.get(platform, platform)}（{len(items)}）**")
+        for hw in items[:15]:
             lines.append(f"- {_hw_line(hw)} ({_deadline_label(hw.deadline)})")
-        if len(todo) > 15:
-            lines.append(f"  …还有{len(todo) - 15}条")
-    else:
-        lines.append("🎉 无未写作业")
+        if len(items) > 15:
+            lines.append(f"  …还有{len(items) - 15}条")
+        lines.append("")
 
-    if submitted:
-        lines.append(f"\n**已提交({len(submitted)})**")
-        for hw in submitted[:5]:
-            lines.append(f"- {_hw_line(hw)}")
-        if len(submitted) > 5:
-            lines.append(f"  …还有{len(submitted) - 5}条")
-
-    if graded:
-        lines.append(f"\n**已批改({len(graded)})**")
-        for hw in graded[:5]:
-            score = f" 得分:{hw.score}" if hw.score else ""
-            lines.append(f"- {_hw_line(hw)}{score}")
-
-    header = f"📋 作业汇总 · {len(todo)}条未写 / {len(submitted)}条已交 / {len(graded)}条已批"
-    return f"## {header}\n" + "\n".join(lines)
+    header = f"📋 未提交作业 · {len(todo)} 条"
+    return f"## {header}\n" + "\n".join(lines).rstrip()
 
 
 def run(force_summary: bool = False):
@@ -175,6 +190,17 @@ def run(force_summary: bool = False):
             return 2
         except Exception as e:
             _handle_fetch_error(pusher, "头歌", e)
+
+    # ---- MOOC ----
+    if cfg["mooc_cookie"]:
+        try:
+            fetcher = MoocFetcher(cfg["mooc_cookie"])
+            homeworks.extend(fetcher.fetch_all())
+        except Exception as e:
+            _handle_fetch_error(pusher, "MOOC", e)
+
+    # ---- 筛选：只保留未提交且未过期的作业 ----
+    homeworks = filter_pending(homeworks)
 
     if not homeworks:
         print("本轮未获取到任何作业，跳过推送")
