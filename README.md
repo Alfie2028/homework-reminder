@@ -73,6 +73,26 @@ python -m src.main --force-summary
 | 头歌（educoder.net） | 图文作业、分组作业、实训作业 |
 | 中国大学MOOC（icourse163.org） | 单元测验、单元作业（含同伴互评） |
 
+## 只监测某个平台
+
+`config.json` 里有两个开关，默认都是 `true`（两个平台都盯）：
+
+```json
+"educoder_enabled": true,
+"mooc_enabled": true
+```
+
+**只想监测 MOOC、不管头歌**，把 `educoder_enabled` 改成 `false`：
+
+```json
+"educoder_enabled": false,
+"mooc_enabled": true
+```
+
+改完就生效，检测（`main.py`）和刷新（`refresh_cookies.py`）都会跳过头歌，只盯 MOOC。反过来只想监测头歌，就把 `mooc_enabled` 改成 `false`。
+
+> 不用去删 Cookie 字段——开关设成 `false` 之后，就算 Cookie 还留在 `config.json` 里也会被无视。
+
 ## 原理（写给想折腾的人）
 
 这两个平台都没有公开 API，我是逆向前端 JS 抓出来的接口，简单说下：
