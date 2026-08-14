@@ -118,7 +118,6 @@ class EducoderFetcher(BaseFetcher):
             "sort_by": "updated_at", "sort_direction": "desc",
             "username": self.username, "zzud": self.username,
         })
-        print(f"[诊断] courses 原始响应: {str(data)[:500]}")
         return self._parse_courses(data)
 
     def fetch_course_homeworks(self, course: Course) -> list[Homework]:
@@ -195,9 +194,6 @@ class EducoderFetcher(BaseFetcher):
             "Referer": "https://www.educoder.net/",
         })
         resp = self.session.get(url, params=params, timeout=30)
-        print(f"[DIAG] HTTP {resp.status_code} {url}", flush=True)
-        if resp.status_code >= 400:
-            print(f"[DIAG] body: {resp.text[:300]}", flush=True)
         if resp.status_code in (401, 403):
             raise PermissionError(f"401/403 Cookie 失效: {url}")
         resp.raise_for_status()

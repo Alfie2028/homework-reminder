@@ -26,4 +26,4 @@ jobs:
           EDUCODER_PASSWORD: ${{ secrets.EDUCODER_PASSWORD }}
           MOOC_COOKIE: ${{ secrets.MOOC_COOKIE }}
           SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
-        run: python -u -m src.main
+        run: python -m src.main
