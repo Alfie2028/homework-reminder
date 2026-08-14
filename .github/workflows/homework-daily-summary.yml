@@ -1,0 +1,26 @@
+name: homework-daily-summary
+
+on:
+  schedule:
+    # 每天北京时间早8点推汇总(UTC 0:17)
+    - cron: "17 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Run daily summary
+        env:
+          EDUCODER_COOKIE: ${{ secrets.EDUCODER_COOKIE }}
+          EDUCODER_USERNAME: ${{ secrets.EDUCODER_USERNAME }}
+          EDUCODER_PASSWORD: ${{ secrets.EDUCODER_PASSWORD }}
+          MOOC_COOKIE: ${{ secrets.MOOC_COOKIE }}
+          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
+        run: python -m src.main --force-summary

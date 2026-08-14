@@ -1,0 +1,29 @@
+name: homework-check
+
+on:
+  schedule:
+    # 每3小时跑一次(UTC时间, 对应北京时间 0/3/6/.../21 点的下1小时)
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run homework check
+        env:
+          EDUCODER_COOKIE: ${{ secrets.EDUCODER_COOKIE }}
+          EDUCODER_USERNAME: ${{ secrets.EDUCODER_USERNAME }}
+          EDUCODER_PASSWORD: ${{ secrets.EDUCODER_PASSWORD }}
+          MOOC_COOKIE: ${{ secrets.MOOC_COOKIE }}
+          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
+        run: python -m src.main
