@@ -126,17 +126,20 @@ def _hw_line(hw: Homework) -> str:
 
 PLATFORM_NAMES = {"educoder": "🎓 头歌", "mooc": "📚 中国大学MOOC"}
 
-# 未提交条数 → 调侃文案（1 / 3 / 5+ 各一条；2、4 条不调侃）
+# 未提交条数 → 调侃文案（1 / 3 / 5+ / 8+ 各一条；2、4 条不调侃）
 _BANTER = {
     1: "🎯 就剩这 1 条了，随手清掉，今天就能安心卷别的。",
     3: "⛰️ 三座大山压顶，先挑最急的那座啃。",
 }
 _BANTER_MANY = "🧹 作业都排到山海关了，别摆烂，一条条清，先交先安。"
+_BANTER_OVER = "你他娘的看看多少作业没写！再不交作业找人弄你"
 
 
 def _banter(count: int) -> str:
     if count in _BANTER:
         return _BANTER[count]
+    if count > 7:
+        return _BANTER_OVER
     if count >= 5:
         return _BANTER_MANY
     return ""
