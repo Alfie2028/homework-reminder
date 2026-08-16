@@ -21,6 +21,27 @@ except ImportError:  # 非 Windows 环境
     msvcrt = None
 
 
+# ANSI 颜色（Windows 终端高亮提示用）
+RED = "\033[31m"
+YELLOW = "\033[33m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
+
+def _enable_vt() -> None:
+    """Windows 上启用 ANSI 转义序列支持（否则颜色码会显示成乱码）。"""
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            k = ctypes.windll.kernel32
+            h = k.GetStdHandle(-11)  # STD_OUTPUT_HANDLE
+            mode = ctypes.c_uint32()
+            k.GetConsoleMode(h, ctypes.byref(mode))
+            k.SetConsoleMode(h, mode.value | 0x0004)  # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+        except Exception:
+            pass
+
+
 def load_cfg() -> dict:
     if CONFIG.exists():
         with open(CONFIG, "r", encoding="utf-8") as f:
@@ -217,12 +238,13 @@ def register_tasks(interval_hours: int, summary_time: str) -> None:
 
 def _wait_before_browser(seconds: int = 5) -> None:
     """自动登录前给用户缓冲时间，提示浏览器即将弹出。"""
+    _enable_vt()
     print()
     print("配置已完成。")
     print()
     print("接下来将自动登录所选平台：")
     print("  - 系统会自动打开浏览器并完成登录")
-    print("  - 请勿手动操作浏览器，登录完成后会自动关闭")
+    print(f"  - {RED}{BOLD}请勿手动操作浏览器，登录完成后会自动关闭{RESET}")
     print("  - 整个过程约需 30 秒，请耐心等待")
     print()
     for i in range(seconds, 0, -1):
