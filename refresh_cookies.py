@@ -60,12 +60,15 @@ def cookies_valid(cfg: dict) -> tuple[bool, bool]:
 def refresh_educoder(ctx, phone: str, password: str) -> str:
     page = ctx.new_page()
     page.goto("https://www.educoder.net/", wait_until="domcontentloaded")
-    page.get_by_text("登录 / 注册").first.click()
-    page.get_by_placeholder("请输入有效的手机号/邮箱号/账号").fill(phone)
-    page.get_by_placeholder("密码").fill(password)
-    page.wait_for_timeout(800)
-    page.get_by_role("button", name="登录").click(force=True)
-    page.wait_for_timeout(3000)
+    page.wait_for_timeout(2000)
+    # 已登录（导航栏有 /messages/ 链接）则跳过登录表单
+    if page.locator('a[href*="/messages/"]').count() == 0:
+        page.get_by_text("登录 / 注册").first.click(force=True)
+        page.get_by_placeholder("请输入有效的手机号/邮箱号/账号").fill(phone)
+        page.get_by_placeholder("密码").fill(password)
+        page.wait_for_timeout(800)
+        page.get_by_role("button", name="登录").click(force=True)
+        page.wait_for_timeout(3000)
     cookie = cookies_to_str(ctx.cookies(), EDUCODER_COOKIE_NAMES)
     page.close()
     if "_educoder_session" not in cookie:
@@ -107,11 +110,10 @@ def main() -> int:
     args = parser.parse_args()
 
     cfg = load_cfg()
-    phone = cfg.get("login_phone", "")
-    password = cfg.get("login_password", "")
-    if not phone or not password:
-        print("缺少 login_phone / login_password，请在 config.json 配置")
-        return 1
+    edu_phone = cfg.get("educoder_phone", "")
+    edu_password = cfg.get("educoder_password", "")
+    mooc_phone = cfg.get("mooc_phone", "")
+    mooc_password = cfg.get("mooc_password", "")
 
     # 检测哪些需要刷新
     if args.force:
@@ -142,18 +144,24 @@ def main() -> int:
         ctx = browser.new_context()
 
         if need_edu:
-            try:
-                cfg["educoder_cookie"] = refresh_educoder(ctx, phone, password)
-                print("✓ 头歌 Cookie 已刷新")
-            except Exception as e:
-                print(f"✗ 头歌刷新失败: {e}")
+            if not edu_phone or not edu_password:
+                print("✗ 头歌缺少账号密码，跳过（请在 config.json 填 educoder_phone / educoder_password）")
+            else:
+                try:
+                    cfg["educoder_cookie"] = refresh_educoder(ctx, edu_phone, edu_password)
+                    print("✓ 头歌 Cookie 已刷新")
+                except Exception as e:
+                    print(f"✗ 头歌刷新失败: {e}")
 
         if need_mooc:
-            try:
-                cfg["mooc_cookie"] = refresh_mooc(ctx, phone, password)
-                print("✓ MOOC Cookie 已刷新")
-            except Exception as e:
-                print(f"✗ MOOC 刷新失败: {e}")
+            if not mooc_phone or not mooc_password:
+                print("✗ MOOC 缺少账号密码，跳过（请在 config.json 填 mooc_phone / mooc_password）")
+            else:
+                try:
+                    cfg["mooc_cookie"] = refresh_mooc(ctx, mooc_phone, mooc_password)
+                    print("✓ MOOC Cookie 已刷新")
+                except Exception as e:
+                    print(f"✗ MOOC 刷新失败: {e}")
 
         browser.close()
 

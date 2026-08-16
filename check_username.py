@@ -72,10 +72,10 @@ def main() -> int:
         print(f"已手动设置 educoder_username = {args.manual}")
         return 0
 
-    phone = cfg.get("login_phone", "")
-    password = cfg.get("login_password", "")
+    phone = cfg.get("educoder_phone", "")
+    password = cfg.get("educoder_password", "")
     if not phone or not password:
-        print("缺少 login_phone / login_password，请先填 config.json")
+        print("缺少 educoder_phone / educoder_password，请先填 config.json")
         return 1
 
     print(f"当前 educoder_username = {current!r}")
