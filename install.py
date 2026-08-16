@@ -170,7 +170,7 @@ def auto_login(cfg: dict, edu_phone: str, edu_password: str, mooc_phone: str, mo
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="msedge", headless=False)
+        browser = p.chromium.launch(channel="msedge", headless=False, args=["--window-position=-32000,-32000"])
         ctx = browser.new_context()
 
         if cfg.get("educoder_enabled"):
@@ -198,21 +198,33 @@ def auto_login(cfg: dict, edu_phone: str, edu_password: str, mooc_phone: str, mo
 
 
 def write_run_bat() -> None:
+    # 定时任务用 pythonw（无控制台窗口）；巡检.bat 是手动用的，保留 python 以便看到输出
     (ROOT / "run.bat").write_text(
-        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npython -m src.main\n',
+        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npythonw -m src.main\n',
         encoding="ascii",
     )
     (ROOT / "run-summary.bat").write_text(
-        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npython -m src.main --force-summary\n',
+        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npythonw -m src.main --force-summary\n',
         encoding="ascii",
     )
     (ROOT / "refresh.bat").write_text(
-        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npython refresh_cookies.py\n',
+        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npythonw refresh_cookies.py\n',
         encoding="ascii",
     )
     (ROOT / "巡检.bat").write_text(
         '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npython -m src.main --inspect\n',
         encoding="ascii",
+    )
+
+
+def _enable_missed_catchup(task_name: str) -> None:
+    """给每日任务开「错过补跑」：错过计划时间点后，开机时补跑一次。"""
+    subprocess.run(
+        ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+         f"$t = Get-ScheduledTask -TaskName '{task_name}'; "
+         f"$t.Settings.StartWhenAvailable = $true; "
+         f"Set-ScheduledTask -TaskName '{task_name}' -Settings $t.Settings"],
+        capture_output=True,
     )
 
 
@@ -231,6 +243,7 @@ def register_tasks(interval_hours: int, summary_time: str) -> None:
         capture_output=True,
     )
     print(f"  正在配置每日汇总通知（每日 {summary_time}）... 完成")
+    _enable_missed_catchup("homework-summary")
 
     subprocess.run(
         ["schtasks", "/Create", "/F", "/TN", "homework-refresh-cookie",
@@ -238,6 +251,7 @@ def register_tasks(interval_hours: int, summary_time: str) -> None:
         capture_output=True,
     )
     print("  正在配置登录凭证自动刷新（每日 08:00）... 完成")
+    _enable_missed_catchup("homework-refresh-cookie")
 
 
 def test_push(cfg: dict) -> None:

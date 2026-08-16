@@ -7,9 +7,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+
+# pythonw 无控制台时 sys.stdout 为 None，print 会崩；兜底到 devnull
+if sys.stdout is None:
+    sys.stdout = sys.stderr = open(os.devnull, "w", encoding="utf-8")
 
 from .config import DATA_DIR, load_config
 from .fetchers.educoder import EducoderFetcher, Homework
@@ -131,12 +136,21 @@ def filter_pending(homeworks: list[Homework], now: datetime | None = None) -> li
 
 
 def _hw_line(hw: Homework) -> str:
-    """作业行: 带课程前缀(多课程时用)。"""
-    prefix = f"[{hw.course}] " if hw.course else ""
-    return f"{prefix}{hw.title}"
+    """作业行: 课程名(可点击跳平台首页) + 标题。"""
+    home = PLATFORM_HOME.get(hw.platform, "")
+    if hw.course:
+        name = f"[{hw.course}]({home})" if home else f"[{hw.course}]"
+        return f"{name} {hw.title}"
+    return hw.title
 
 
 PLATFORM_NAMES = {"educoder": "🎓 头歌", "mooc": "📚 中国大学MOOC"}
+
+# 平台主域名：点击分组标题跳平台首页（不深链到课程/登录/个人信息页）
+PLATFORM_HOME = {
+    "educoder": "https://www.educoder.net",
+    "mooc": "https://www.icourse163.org",
+}
 
 # 未提交条数 → 调侃文案（1 / 3 / 5+ / 8+ 各一条；2、4 条不调侃）
 _BANTER = {
@@ -176,7 +190,10 @@ def build_summary_message(homeworks: list[Homework], new_keys: set[str] | None =
         items = groups.get(platform, [])
         if not items:
             continue
-        lines.append(f"**{PLATFORM_NAMES.get(platform, platform)}（{len(items)}）**")
+        name = PLATFORM_NAMES.get(platform, platform)
+        home = PLATFORM_HOME.get(platform, "")
+        label = f"[{name}（{len(items)}）]({home})" if home else f"{name}（{len(items)}）"
+        lines.append(f"**{label}**")
         for hw in items[:15]:
             mark = " [新]" if hw.key in new_keys else ""
             lines.append(f"- {_deadline_label(hw.deadline)} · {_hw_line(hw)}{mark}")

@@ -11,10 +11,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+
+# pythonw 无控制台时 sys.stdout 为 None，print 会崩；兜底到 devnull
+if sys.stdout is None:
+    sys.stdout = sys.stderr = open(os.devnull, "w", encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
@@ -140,7 +145,7 @@ def main() -> int:
         return 0
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="msedge", headless=False)
+        browser = p.chromium.launch(channel="msedge", headless=False, args=["--window-position=-32000,-32000"])
         ctx = browser.new_context()
 
         if need_edu:

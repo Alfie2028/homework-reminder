@@ -36,7 +36,7 @@ def save_cfg(cfg: dict) -> None:
 def detect_username(phone: str, password: str) -> str:
     """登录头歌，从消息链接 /messages/{用户名}/ 里提取用户名。"""
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="msedge", headless=False)
+        browser = p.chromium.launch(channel="msedge", headless=False, args=["--window-position=-32000,-32000"])
         page = browser.new_context().new_page()
         page.goto("https://www.educoder.net/", wait_until="domcontentloaded")
         page.get_by_text("登录 / 注册").first.click()
