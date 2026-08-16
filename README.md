@@ -1,4 +1,4 @@
-# 作业提醒
+# 作业状态推送（作业提醒）
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Alfie2028/homework-reminder?style=flat-square)](https://github.com/Alfie2028/homework-reminder/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
