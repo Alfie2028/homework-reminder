@@ -50,14 +50,14 @@ def _deadline_label(raw: str | datetime | None) -> str:
     """接受原始字符串或 datetime，返回人类可读的剩余时间。"""
     deadline = raw if isinstance(raw, datetime) else _parse_deadline(raw or "")
     if deadline is None:
-        return "无DDL"
+        return "无截止"
     remain = deadline - _now()
     if remain.total_seconds() < 0:
         return f"已过期{abs(remain).days}天"
     hours = int(remain.total_seconds() // 3600)
     if hours < 24:
-        return f"剩{hours}小时"
-    return f"剩{remain.days}天"
+        return f"{hours}小时"
+    return f"{remain.days}天"
 
 
 def detect_urgent(homeworks: list[Homework], now: datetime | None = None) -> list[dict]:
@@ -103,14 +103,16 @@ def detect_changes(old: dict, new: dict) -> dict:
 
 
 def filter_pending(homeworks: list[Homework], now: datetime | None = None) -> list[Homework]:
-    """只保留「未提交」且「未过期(或无DDL)」的作业。"""
+    """只保留「未提交」且「有截止时间且未过期」的作业。"""
     now = now or _now()
     pending = []
     for hw in homeworks:
         if hw.status != "未写":
             continue
         dl = _parse_deadline(hw.deadline)
-        if dl is not None and dl < now:
+        if dl is None:
+            continue  # 无截止时间，跳过
+        if dl < now:
             continue  # 已过期，跳过
         pending.append(hw)
     return pending
@@ -125,19 +127,8 @@ def _hw_line(hw: Homework) -> str:
 PLATFORM_NAMES = {"educoder": "🎓 头歌", "mooc": "📚 中国大学MOOC"}
 
 
-def build_urgent_message(urgent: list[dict]) -> str:
-    if not urgent:
-        return ""
-    lines = []
-    for item in urgent[:10]:
-        hw = item["hw"]
-        lines.append(
-            f"- [{item['level']}] {_hw_line(hw)} ({_deadline_label(hw.deadline)})"
-        )
-    return "## ⏰ 截止提醒\n" + "\n".join(lines)
-
-
-def build_summary_message(homeworks: list[Homework]) -> str:
+def build_summary_message(homeworks: list[Homework], new_keys: set[str] | None = None) -> str:
+    new_keys = new_keys or set()
     todo = [h for h in homeworks if h.status == "未写"]
     # 按截止时间升序(最近截止在前)
     todo.sort(key=lambda h: _parse_deadline(h.deadline) or datetime.max)
@@ -157,12 +148,13 @@ def build_summary_message(homeworks: list[Homework]) -> str:
             continue
         lines.append(f"**{PLATFORM_NAMES.get(platform, platform)}（{len(items)}）**")
         for hw in items[:15]:
-            lines.append(f"- {_hw_line(hw)} ({_deadline_label(hw.deadline)})")
+            mark = " [新]" if hw.key in new_keys else ""
+            lines.append(f"- {_deadline_label(hw.deadline)} · {_hw_line(hw)}{mark}")
         if len(items) > 15:
             lines.append(f"  …还有{len(items) - 15}条")
         lines.append("")
 
-    header = f"📋 未提交作业 · {len(todo)} 条"
+    header = f"📋 作业提醒 · {len(todo)} 条未提交"
     return f"## {header}\n" + "\n".join(lines).rstrip()
 
 
@@ -212,35 +204,24 @@ def run(force_summary: bool = False):
 
     # ---- 变化检测 ----
     changes = detect_changes(old_state, new_state)
+    new_keys = {hw["key"] for hw in changes["new"]}
 
     # ---- 分级截止提醒 ----
     urgent = detect_urgent(homeworks)
 
     # ---- 组装并推送 ----
-    parts = []
     if force_summary:
-        # 每日汇总(早8点 workflow 触发)
-        parts.append(build_summary_message(homeworks))
-    else:
-        # 每3h运行: 只推变化 + 紧急
-        if urgent:
-            parts.append(build_urgent_message(urgent))
-        if changes["new"]:
-            lines = "\n".join(f"- {_hw_line(hw)}" for hw in changes["new"][:10])
-            parts.append(f"## 🆕 新作业上线\n{lines}")
-        if changes["status_changed"]:
-            lines = "\n".join(
-                f"- {_hw_line(hw)} → {hw.status}"
-                for hw in changes["status_changed"][:10]
-            )
-            parts.append(f"## 🔄 状态更新\n{lines}")
-
-    if not parts:
-        print("无变化、无紧急，跳过推送")
-    else:
-        body = "\n\n".join(parts)
+        # 每日汇总: 固定推送完整未提交清单
+        body = build_summary_message(homeworks, new_keys)
+        pusher.send_markdown("作业提醒", body)
+        print(f"已推送汇总, 共{len(homeworks)}条作业")
+    elif changes["new"] or urgent:
+        # 每3h运行: 有新作业或临近截止才推完整清单
+        body = build_summary_message(homeworks, new_keys)
         pusher.send_markdown("作业提醒", body)
         print(f"已推送, 共{len(homeworks)}条作业")
+    else:
+        print("无变化、无紧急，跳过推送")
 
     store.set("homeworks", new_state)
     return 0
