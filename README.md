@@ -57,7 +57,7 @@ Server酱 的 SendKey 去 https://sct.ftqq.com 登录 → 微信扫码关注「�
 python refresh_cookies.py --force
 ```
 
-会弹出一个 Edge 窗口自动登录两个平台，大约半分钟，别慌，是正常的。跑完 Cookie 就自动写进 `config.json` 了。不加 `--force` 则是「检测失效才重登」，适合挂在定时任务里。
+会在后台打开 Edge 窗口自动登录两个平台（窗口移到屏幕外，不打扰你），大约半分钟。跑完 Cookie 就自动写进 `config.json` 了。不加 `--force` 则是「检测失效才重登」，适合挂在定时任务里。
 
 ### 4. 检查头歌用户名
 
@@ -86,6 +86,7 @@ python -m src.main --force-summary
 - **汇总模式**（每天固定时间）：无论有没有变化都推一份未提交清单
 - 未提交条数为 1 / 3 / 5+ / 8+ 四档时，消息里各附一句越来越「凶」的调侃话
 - 登录 Cookie 失效时推送告警，另有独立定时任务每天自动重登兜底
+- 全程后台无感运行：自动登录窗口离屏、定时任务用 pythonw 无黑框，不打扰正常工作
 
 ## 支持什么
 
@@ -137,6 +138,7 @@ python -m src.main --force-summary
 ├── install.py               # 安装向导：选平台 → 账密 → 密钥 → 频率 → 自动登录 → 注册计划任务 → 测试推送
 ├── refresh_cookies.py       # 自动登录刷新 Cookie（含 HttpOnly 那几个）
 ├── check_username.py        # 检查/修正头歌用户名
+├── build_zip.py             # 打包安装包 zip（开发者用）
 ├── 安装.bat                 # 一键安装入口：装 Python + 依赖，再调 install.py
 ├── 卸载.bat                 # 删除三个 Windows 计划任务
 ├── 使用说明.txt             # 给不懂代码同学的图文说明
@@ -165,7 +167,7 @@ python -m src.main --force-summary
 
 | 任务名 | 频率 | 干什么 |
 |--------|------|--------|
-| `homework-check` | 每 3 小时（安装时可改 1/2/3/6 小时） | 有新作业 / 临截止才推 |
+| `homework-check` | 每 3 小时（安装时可改 1/2/3/6 小时） | 有新作业 / 截止前 8、4 小时才推 |
 | `homework-summary` | 每天 12:30（安装时可改） | 推未提交清单 |
 | `homework-refresh-cookie` | 每天 8:00 | 检测失效自动重登 |
 
@@ -177,7 +179,7 @@ python -m src.main --force-summary
 
 - **GitHub Actions 用不了**：头歌会封境外 IP（GitHub Actions 跑在美国 Azure 机房），返回 401/403。所以这项目只能本地跑。
 - **HttpOnly Cookie**：MOOC 那几个关键 Cookie 是 HttpOnly，`document.cookie` 拿不到，别在那上面浪费时间。
-- **headless 浏览器容易被反爬**：所以自动登录用的是可见浏览器窗口。
+- **headless 浏览器容易被反爬**：所以自动登录不用 headless，而是把真实浏览器窗口移到屏幕外（`--window-position=-32000,-32000`），既不打扰你、又能过反爬。
 - **中途换课程/换学期**：不用管，每次运行都会重新拉课程列表，新课程自动生效。
 
 ## 已知的问题
