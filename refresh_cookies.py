@@ -5,7 +5,7 @@
     python refresh_cookies.py --force   # 强制重新登录刷新
 
 依赖: pip install playwright (使用系统 Edge 浏览器，无需下载 Chromium)
-账密读取 config.json 里的 login_phone / login_password。
+账密读取 config.json 里的 educoder_phone / educoder_password / mooc_phone / mooc_password。
 """
 from __future__ import annotations
 

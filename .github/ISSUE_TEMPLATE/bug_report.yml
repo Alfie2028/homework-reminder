@@ -1,0 +1,57 @@
+name: Bug 反馈
+description: 提交一个问题报告，带上平台、系统和报错，帮助我更快定位
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 你用的是哪个版本？（安装包文件名里的版本号，或 Git 提交）
+      placeholder: "例如 v1.0.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 哪个平台出问题
+      description: 问题发生在哪个环节
+      options:
+        - 头歌（educoder）
+        - 中国大学MOOC
+        - 两个平台都有
+        - 推送 / 微信
+        - 安装 / 定时任务
+        - 其他
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: 操作系统
+      description: 系统版本（越具体越好）
+      placeholder: "例如 Windows 11 23H2 / Windows 10 22H2"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么
+      description: 描述你期望的行为，以及实际发生的行为
+      placeholder: "我期望收到作业提醒，但……"
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: 报错信息 / 截图
+      description: 粘贴终端里的报错信息，或附上截图（注意把 Cookie / 密码 / SendKey 打码）
+      render: shell
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 一步步描述如何触发这个问题
+      placeholder: "1. …\n2. …\n3. …"
+    validations:
+      required: true

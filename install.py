@@ -240,6 +240,24 @@ def register_tasks(interval_hours: int, summary_time: str) -> None:
     print("  正在配置登录凭证自动刷新（每日 08:00）... 完成")
 
 
+def test_push(cfg: dict) -> None:
+    """安装后可选：发一条测试推送，验证 Server酱 配置是否正确。"""
+    print()
+    ans = input("要不要现在发一条测试推送，验证配置？（y/n，直接回车 = 是）：").strip().lower()
+    if ans not in ("", "y", "yes"):
+        return
+    key = cfg.get("serverchan_key", "")
+    if not key:
+        print("  未配置 Server酱 密钥，跳过测试推送。")
+        return
+    from src.pusher import ServerChanPusher
+    try:
+        ServerChanPusher(key).send_markdown("作业提醒 · 测试", "✅ 配置正确，推送链路已打通。")
+        print("  ✓ 测试推送已发送，请查看微信「方糖」。")
+    except Exception as e:
+        print(f"  ✗ 测试推送失败：{e}")
+
+
 def _wait_before_browser(seconds: int = 5) -> None:
     """自动登录前给用户缓冲时间，提示浏览器即将弹出。"""
     _enable_vt()
@@ -305,6 +323,9 @@ def main() -> int:
     # 生成运行脚本 + 注册定时任务
     write_run_bat()
     register_tasks(interval, summary_time)
+
+    # 可选：发一条测试推送，验证配置
+    test_push(cfg)
 
     print()
     print("=" * 44)
