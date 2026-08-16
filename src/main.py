@@ -158,7 +158,7 @@ def build_summary_message(homeworks: list[Homework], new_keys: set[str] | None =
     return f"## {header}\n" + "\n".join(lines).rstrip()
 
 
-def run(force_summary: bool = False):
+def run(force_summary: bool = False, inspect: bool = False):
     cfg = load_config()
     if cfg["serverchan_key"]:
         pusher = ServerChanPusher(cfg["serverchan_key"])
@@ -194,23 +194,22 @@ def run(force_summary: bool = False):
     # ---- 筛选：只保留未提交且未过期的作业 ----
     homeworks = filter_pending(homeworks)
 
-    if not homeworks:
-        print("本轮未获取到任何作业，跳过推送")
-        return 0
-
-    # ---- 状态索引 ----
+    # ---- 状态索引 + 变化检测 + 紧急 ----
     new_state = {hw.key: hw.__dict__ for hw in homeworks}
     old_state = store.get("homeworks") or {}
-
-    # ---- 变化检测 ----
     changes = detect_changes(old_state, new_state)
     new_keys = {hw["key"] for hw in changes["new"]}
-
-    # ---- 分级截止提醒 ----
     urgent = detect_urgent(homeworks)
 
     # ---- 组装并推送 ----
-    if force_summary:
+    if inspect:
+        # 巡检模式: 无论有无待办作业都推送当前状态
+        body = build_summary_message(homeworks, new_keys)
+        pusher.send_markdown("作业提醒 · 巡检", body)
+        print(f"巡检完成, 共{len(homeworks)}条未提交作业")
+    elif not homeworks:
+        print("本轮未获取到任何作业，跳过推送")
+    elif force_summary:
         # 每日汇总: 固定推送完整未提交清单
         body = build_summary_message(homeworks, new_keys)
         pusher.send_markdown("作业提醒", body)
@@ -238,8 +237,9 @@ def _handle_fetch_error(pusher, platform: str, exc: Exception):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--force-summary", action="store_true", help="强制推送汇总")
+    parser.add_argument("--inspect", action="store_true", help="巡检模式：无论有无待办作业都推送当前状态到手机")
     args = parser.parse_args()
-    sys.exit(run(force_summary=args.force_summary))
+    sys.exit(run(force_summary=args.force_summary, inspect=args.inspect))
 
 
 if __name__ == "__main__":
