@@ -199,15 +199,19 @@ def auto_login(cfg: dict, edu_phone: str, edu_password: str, mooc_phone: str, mo
 
 def write_run_bat() -> None:
     (ROOT / "run.bat").write_text(
-        '@echo off\r\ncd /d "%~dp0"\r\nset PYTHONIOENCODING=utf-8\r\npython -m src.main\r\n',
+        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npython -m src.main\n',
         encoding="ascii",
     )
     (ROOT / "run-summary.bat").write_text(
-        '@echo off\r\ncd /d "%~dp0"\r\nset PYTHONIOENCODING=utf-8\r\npython -m src.main --force-summary\r\n',
+        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npython -m src.main --force-summary\n',
         encoding="ascii",
     )
     (ROOT / "refresh.bat").write_text(
-        '@echo off\r\ncd /d "%~dp0"\r\nset PYTHONIOENCODING=utf-8\r\npython refresh_cookies.py\r\n',
+        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npython refresh_cookies.py\n',
+        encoding="ascii",
+    )
+    (ROOT / "巡检.bat").write_text(
+        '@echo off\ncd /d "%~dp0"\nset PYTHONIOENCODING=utf-8\npython -m src.main --inspect\n',
         encoding="ascii",
     )
 
