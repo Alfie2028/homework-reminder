@@ -1,13 +1,12 @@
 @echo off
-chcp 65001 >nul
 cd /d "%~dp0"
 
-echo Ф╜ёЕ°╗Е│°Ф╜╒Е╝ Ф≈╤Д╩╩Е┼║...
+echo уЩтзмёж╧╤╗й╠хннЯ...
 schtasks /Delete /F /TN "homework-check" >nul 2>nul
 schtasks /Delete /F /TN "homework-summary" >nul 2>nul
 schtasks /Delete /F /TN "homework-refresh-cookie" >nul 2>nul
-echo Б°⌠ Е╥╡Е│°Ф╜╒
+echo ║л рямёж╧
 
 echo.
-echo Ф°╛Г╗▀Е╨▐Е╥╡Е│°Ф╜╒Х©░Х║▄Ц─┌Е╕┌И°─Е╫╩Е╨∙Г╖╩И≥╓О╪▄Х╞╥Г⌡╢Ф▌╔Е┬═И≥╓Ф°╛Ф√┤Д╩╤Е╓╧Ц─┌
+echo ╠╬ЁлпРрямёж╧ткпп║ёхГпХЁ╧╣врфЁЩё╛гКж╠╫си╬ЁЩ╠╬нд╪Ч╪п║ё
 pause

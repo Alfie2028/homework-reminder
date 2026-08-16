@@ -1,0 +1,2 @@
+# .bat 文件用 GBK 编码（Windows cmd 原生识别），标记为二进制避免 git/GitHub 按 UTF-8 转换显示
+*.bat binary

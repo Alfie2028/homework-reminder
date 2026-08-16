@@ -1,56 +1,55 @@
 @echo off
-chcp 65001 >nul
 cd /d "%~dp0"
 set "PYTHONIOENCODING=utf-8"
 
 echo ============================================
-echo           ä½œä¸šæé†’ Â· å®‰è£…ç¨‹åº
+echo           ×÷ÒµÌáÐÑ ¡¤ °²×°³ÌÐò
 echo ============================================
 echo.
-echo æ­¤ç¨‹åºä¼šè‡ªåŠ¨ç›‘æŽ§ä½œä¸šçŠ¶æ€ï¼Œæœ‰æ–°å‘å¸ƒã€æœªäº¤æˆ–ä¸´è¿‘æˆªæ­¢æ—¥æœŸæœªäº¤çš„ä½œä¸šä¼šé€šè¿‡å¾®ä¿¡åŠæ—¶é€šçŸ¥ä½ ã€‚
-echo å®‰è£…è¿‡ç¨‹é¢„è®¡éœ€è¦ 2-5 åˆ†é’Ÿï¼ŒæœŸé—´è¯·å‹¿å…³é—­æœ¬çª—å£ã€‚
+echo ´Ë³ÌÐò»á×Ô¶¯¼à¿Ø×÷Òµ×´Ì¬£¬ÓÐÐÂ·¢²¼¡¢Î´½»»òÁÙ½ü½ØÖ¹ÈÕÆÚÎ´½»µÄ×÷Òµ»áÍ¨¹ýÎ¢ÐÅ¼°Ê±Í¨ÖªÄã¡£
+echo °²×°¹ý³ÌÔ¤¼ÆÐèÒª 2-5 ·ÖÖÓ£¬ÆÚ¼äÇëÎð¹Ø±Õ±¾´°¿Ú¡£
 echo.
-echo æ­£åœ¨æ£€æµ‹ç³»ç»ŸçŽ¯å¢ƒ...
+echo ÕýÔÚ¼ì²âÏµÍ³»·¾³...
 
 where python >nul 2>nul
 if %errorlevel% equ 0 goto :have_python
 
-echo æœªæ£€æµ‹åˆ° Python è¿è¡ŒçŽ¯å¢ƒï¼ˆæœ¬ç¨‹åºä¾èµ–æ­¤çŽ¯å¢ƒï¼‰ã€‚
-echo æ­£åœ¨ä¸‹è½½ Python 3.12 å®‰è£…åŒ…...
+echo Î´¼ì²âµ½ Python ÔËÐÐ»·¾³£¨±¾³ÌÐòÒÀÀµ´Ë»·¾³£©¡£
+echo ÕýÔÚÏÂÔØ Python 3.12 °²×°°ü...
 winget install -e --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements
 if %errorlevel% neq 0 goto :python_fail
-echo âœ“ Python å®‰è£…å®Œæˆ
+echo ¡Ì Python °²×°Íê³É
 set "PATH=%LOCALAPPDATA%\Programs\Python\Python312;%PATH%"
 
 :have_python
-echo æ­£åœ¨å®‰è£…ä¾èµ–ç»„ä»¶...
+echo ÕýÔÚ°²×°ÒÀÀµ×é¼þ...
 python -m pip install -r requirements.txt playwright -q
 if %errorlevel% neq 0 goto :deps_fail
-echo âœ“ ä¾èµ–å®‰è£…å®Œæˆ
+echo ¡Ì ÒÀÀµ°²×°Íê³É
 
-echo æ­£åœ¨å¯åŠ¨é…ç½®å‘å¯¼...
+echo ÕýÔÚÆô¶¯ÅäÖÃÏòµ¼...
 python install.py
 if %errorlevel% neq 0 goto :config_fail
 
 echo.
-echo å®‰è£…å®Œæˆï¼Œå¯ä»¥å…³é—­æœ¬çª—å£ã€‚
+echo °²×°Íê³É£¬¿ÉÒÔ¹Ø±Õ±¾´°¿Ú¡£
 pause
 exit /b 0
 
 :python_fail
 echo.
-echo è‡ªåŠ¨å®‰è£… Python å¤±è´¥ã€‚è¯·è®¿é—® python.org æ‰‹åŠ¨ä¸‹è½½å®‰è£…ï¼ˆå‹¾é€‰ Add to PATHï¼‰ï¼Œå®ŒæˆåŽé‡æ–°è¿è¡Œã€Œå®‰è£….batã€ã€‚
+echo ×Ô¶¯°²×° Python Ê§°Ü¡£Çë·ÃÎÊ python.org ÊÖ¶¯ÏÂÔØ°²×°£¨¹´Ñ¡ Add to PATH£©£¬Íê³ÉºóÖØÐÂÔËÐÐ¡¸°²×°.bat¡¹¡£
 pause
 exit /b 1
 
 :deps_fail
 echo.
-echo å®‰è£…ä¾èµ–å¤±è´¥ï¼Œå¯èƒ½æ˜¯ç½‘ç»œè¿žæŽ¥å¼‚å¸¸ã€‚è¯·æ£€æŸ¥ç½‘ç»œåŽé‡æ–°è¿è¡Œã€Œå®‰è£….batã€ã€‚
+echo °²×°ÒÀÀµÊ§°Ü£¬¿ÉÄÜÊÇÍøÂçÁ¬½ÓÒì³£¡£Çë¼ì²éÍøÂçºóÖØÐÂÔËÐÐ¡¸°²×°.bat¡¹¡£
 pause
 exit /b 1
 
 :config_fail
 echo.
-echo é…ç½®å¤±è´¥ï¼Œè¯·é‡æ–°è¿è¡Œã€Œå®‰è£….batã€ã€‚
+echo ÅäÖÃÊ§°Ü£¬ÇëÖØÐÂÔËÐÐ¡¸°²×°.bat¡¹¡£
 pause
 exit /b 1
