@@ -60,28 +60,40 @@ def _deadline_label(raw: str | datetime | None) -> str:
     return f"{remain.days}天"
 
 
-def detect_urgent(homeworks: list[Homework], now: datetime | None = None) -> list[dict]:
-    """找出需要分级提醒的作业：3天/1天/3小时三档。"""
+# 分级提醒档位：截止前 8 小时、4 小时各催一次（rank 越大越紧迫）
+URGENT_LEVELS = {"8小时": 1, "4小时": 2}
+
+
+def urgent_level(hw: Homework, now: datetime) -> str | None:
+    """当前剩余的紧迫档位：8小时 / 4小时 / None（还没到催的窗口）。"""
+    dl = _parse_deadline(hw.deadline)
+    if dl is None:
+        return None
+    hours = (dl - now).total_seconds() / 3600
+    if hours < 0:
+        return None  # 已过期由汇总推送提示
+    if hours <= 4:
+        return "4小时"
+    if hours <= 8:
+        return "8小时"
+    return None
+
+
+def detect_new_urgent(homeworks: list[Homework], reminded: dict, now: datetime | None = None) -> list[Homework]:
+    """只返回「新跨入 8/4 小时档」的作业，每档只催一次，不再反复催。"""
     now = now or _now()
-    urgent = []
+    out = []
     for hw in homeworks:
         if hw.status in ("已提交", "已批改"):
             continue
-        dl = _parse_deadline(hw.deadline)
-        if dl is None:
+        level = urgent_level(hw, now)
+        if level is None:
             continue
-        remain = dl - now
-        hours = remain.total_seconds() / 3600
-        if hours < 0:
-            continue  # 已过期由汇总推送提示
-        if hours <= 3:
-            urgent.append({"hw": hw, "level": "3小时", "remain": remain})
-        elif hours <= 24:
-            urgent.append({"hw": hw, "level": "1天", "remain": remain})
-        elif hours <= 24 * 3:
-            urgent.append({"hw": hw, "level": "3天", "remain": remain})
-    urgent.sort(key=lambda x: x["remain"])
-    return urgent
+        if URGENT_LEVELS[level] > reminded.get(hw.key, 0):
+            out.append(hw)
+            reminded[hw.key] = URGENT_LEVELS[level]
+    out.sort(key=lambda h: _parse_deadline(h.deadline) or datetime.max)
+    return out
 
 
 def detect_changes(old: dict, new: dict) -> dict:
@@ -220,7 +232,8 @@ def run(force_summary: bool = False, inspect: bool = False):
     old_state = store.get("homeworks") or {}
     changes = detect_changes(old_state, new_state)
     new_keys = {hw["key"] for hw in changes["new"]}
-    urgent = detect_urgent(homeworks)
+    reminded = store.get("reminded") or {}
+    urgent = detect_new_urgent(homeworks, reminded)
 
     # ---- 组装并推送 ----
     if inspect:
@@ -236,7 +249,7 @@ def run(force_summary: bool = False, inspect: bool = False):
         pusher.send_markdown("作业提醒", body)
         print(f"已推送汇总, 共{len(homeworks)}条作业")
     elif changes["new"] or urgent:
-        # 每3h运行: 有新作业或临近截止才推完整清单
+        # 每3h运行: 有新作业或新跨入 8/4 小时档才推完整清单
         body = build_summary_message(homeworks, new_keys)
         pusher.send_markdown("作业提醒", body)
         print(f"已推送, 共{len(homeworks)}条作业")
@@ -244,6 +257,7 @@ def run(force_summary: bool = False, inspect: bool = False):
         print("无变化、无紧急，跳过推送")
 
     store.set("homeworks", new_state)
+    store.set("reminded", reminded)
     return 0
 
 
