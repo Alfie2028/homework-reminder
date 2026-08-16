@@ -9,6 +9,7 @@ import json
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -214,6 +215,22 @@ def register_tasks(interval_hours: int, summary_time: str) -> None:
     print("  正在配置登录凭证自动刷新（每日 08:00）... 完成")
 
 
+def _wait_before_browser(seconds: int = 5) -> None:
+    """自动登录前给用户缓冲时间，提示浏览器即将弹出。"""
+    print()
+    print("配置已完成。")
+    print()
+    print("接下来将自动登录所选平台：")
+    print("  - 系统会自动打开浏览器并完成登录")
+    print("  - 请勿手动操作浏览器，登录完成后会自动关闭")
+    print("  - 整个过程约需 30 秒，请耐心等待")
+    print()
+    for i in range(seconds, 0, -1):
+        print(f"  {i} 秒后自动开始...", flush=True)
+        time.sleep(1)
+    print()
+
+
 def main() -> int:
     print("=" * 44)
     print("        作业提醒 · 安装向导")
@@ -254,8 +271,8 @@ def main() -> int:
     # 先保存配置（避免登录失败时丢失已填信息）
     save_cfg(cfg)
 
-    # 自动登录
-    print()
+    # 自动登录（弹出浏览器前给缓冲提示）
+    _wait_before_browser()
     auto_login(cfg, edu_phone, edu_password, mooc_phone, mooc_password)
     save_cfg(cfg)
 
