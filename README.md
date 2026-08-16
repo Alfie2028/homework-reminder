@@ -8,7 +8,7 @@
 
 ## 安装包（给不懂技术的同学）
 
-不想折腾代码的同学，直接去 [Releases](https://github.com/Alfie2028/homework-reminder/releases) 下载 `作业提醒安装包.zip`，解压后双击「安装.bat」即可，全程不需要手动装 Python。装完会主动问你要不要现在发一条测试推送，当场验证微信能不能收到，不用等下一次定时。
+不想折腾代码的同学，直接去 [Releases](https://github.com/Alfie2028/homework-reminder/releases) 下载 `homework-reminder.zip`，解压后双击「安装.bat」即可，全程不需要手动装 Python。装完会主动问你要不要现在发一条测试推送，当场验证微信能不能收到，不用等下一次定时。
 
 > **注意**：从网上下载的 `.bat` 文件会被 Windows 标记为「来自网络」，双击时可能被阻止。请先右键「安装.bat」→「属性」→ 勾选「解除锁定」→「确定」，再双击。或者在该文件夹里按住 Shift 右键空白处 →「在此处打开 PowerShell 窗口」→ 输入 `Get-ChildItem -Recurse | Unblock-File` 回车，一次性解除整个文件夹的锁定。
 
