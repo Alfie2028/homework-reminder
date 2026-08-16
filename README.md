@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](./LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/Alfie2028/homework-reminder?style=social)](https://github.com/Alfie2028/homework-reminder)
 
-某些神人老师布置作业一声不吭，好多次都因为没有及时发现布置的作业而错过提交时间。平时顾不上天天盯着两个平台看作业，一不留神就错过截止时间。如果你也有同样的困惑，那么这个开源项目很适合你：无需打开网页，就能在后台定时抓取**头歌（educoder.net）**和**中国大学MOOC（icourse163.org）**上的作业，发现有**没提交**或**快截止**的，就通过 **Server酱（微信服务号）** 或 **企业微信群机器人 webhook** 推给你。
+某些神人老师布置作业一声不吭，好多次都因为没有及时发现布置的作业而错过提交时间。平时顾不上天天盯着两个平台看作业，一不留神就错过截止时间。如果你也有同样的困惑，那么这个开源项目很适合你：无需打开网页，就能在后台定时抓取**头歌（educoder.net）**和**中国大学MOOC（icourse163.org）**上的作业，发现有**没提交**或**快截止**的，就通过 **Server酱（微信服务号）** 或 **企业微信群机器人 webhook** （可自行选择推送方式）推给你。
 
 ## 安装包（给不懂技术的同学）
 
@@ -73,9 +73,9 @@ python check_username.py
 python -m src.main --force-summary
 ```
 
-微信收到「方糖」的汇总消息（或企业微信机器人消息）就说明通了。
+微信收到「方糖」的汇总消息就说明通了。
 
-> 也可以跑 `python -m src.main --inspect`（巡检模式）：无论有没有待办作业都推一条当前状态，适合手动确认链路。
+> 也可以跑 `python -m src.main --inspect`巡检模式(新版本已经外置为独立程序)：无论有没有待办作业都推一条当前状态，适合手动确认链路。
 
 ## 它做了什么
 
@@ -188,9 +188,9 @@ python -m src.main --force-summary
 - 头歌的密码自动登录还没做成纯 requests 的（加密差最后一步），暂时靠 `autologin_trustie` 长期令牌 + Playwright 自动登录脚本兜底
 - 平台改了接口/签名就得更新对应的 fetcher，没人能保证一直稳定
 
-## 免责声明
+## 严正声明
 
-这脚本是我自己学习用着方便的，抓取第三方平台数据可能违反它们的服务条款。用之前自己掂量，出了啥问题自己担着。
+脚本是自己学习用着方便的，本程序所有接口皆为逆向json所得，头歌和中国大学MOOC均没有开放平台提供API接口。
 
 ## License
 
